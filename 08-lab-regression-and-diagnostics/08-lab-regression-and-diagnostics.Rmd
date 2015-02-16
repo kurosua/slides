@@ -1,18 +1,9 @@
 ---
 title: "Lab: Regression and diagnostics"
-author: "Angela Dixon"
-date: "2015-02-16 ![Creative Commons Attribution License](images/cc-by.png)"
-output: 
-  ioslides_presentation:
-    css: soc504_s2015_slides.css
+author: "Aaron Kurosu"
+date: "2015-02-16"
+output: html_document
 ---
-
-
-## {.smaller}
-
-
-<br><br> <br> <br> <br><br> <br> <br> <br><br> <br> <br> 
-<br> <br><br> <br> <br>    
 
 ** Inspiration for this lab comes from the work of Jonathan Tannen 
 
@@ -30,7 +21,7 @@ This paper examined the relationship between the Human Development Index (HDI) a
 ```{r, eval=FALSE}
 library(dplyr)
 library(ggplot2)
-data <- read.csv("data/nature08230-s2.csv")
+data <- read.csv("~/Dropbox/SOC504/week 3/nature08230-s2.csv")
 data <- select(data, country, HDI.1975, TFR.1975, HDI.2005, TFR.2005)
 ```
 
@@ -39,14 +30,36 @@ data <- select(data, country, HDI.1975, TFR.1975, HDI.2005, TFR.2005)
 
 Explore the dataset. Make some plots. Do some calculations.
 What do you see?
+```{r}
+data %>%
+  filter(!is.na(HDI.1975), !is.na(TFR.1975), 
+         !is.na(HDI.2005), !is.na(TFR.2005)) %>% 
+  ggplot(aes(TFR.1975, HDI.1975)) +
+    geom_point()
+```
+
 
 ## Using lm()
 
 - Use "lm(y ~ x)" to regress TFR on HDI for 1975. 
 - Use "lm(y ~ x)" as lfit, and use "summary(lfit)."   
-- What is the observed relationship?  
+- What is the observed relationship?
+In 1975, there is a negative correlation between the human development index and the total fertality rate.
+
 - Use the coefficient in a sentence.  
+For a country with an HDI of zero it's predicted to have a TFR of 9.6. 
+
 - Interpret the constant.  
+the intercept of the line
+
+```{r}
+data %>%
+  filter(!is.na(HDI.1975), !is.na(TFR.1975), 
+         !is.na(HDI.2005), !is.na(TFR.2005)) %>% 
+lfit <- lm(TFR.1975 ~ HDI.1975)
+summary(lfit)
+
+```
  
 
 ## An lm() Object
@@ -54,9 +67,35 @@ What do you see?
 - lm() doesn't just spit out values, it stores anything you could ever need  
 - Use "str(lift)" to look at the structure of lfit. What's inside?  
 - Can you print the coefficients?  
+```{r}
+str(lfit)
+print(lfit$coefficients)
+```
+
 - Add the regression line to your scatter plot. 
+```{r}
+data %>%
+  filter(!is.na(HDI.1975), !is.na(TFR.1975), 
+         !is.na(HDI.2005), !is.na(TFR.2005)) %>% 
+  ggplot(aes(TFR.1975, HDI.1975)) +
+    geom_point() +
+    geom_smooth(method="lm")
+```
 - Can you print the true TFR and the predicted TFR side by side? (you will need to address the missing data issue)   
+A: look below
+
 - Bonus: Instead of summary(lfit), try installing and using the "broom" package. Which one do you like better? (see ??broom for more information)
+```{r}
+require(broom)
+tidy(lfit)
+# tidy puts it into a dataframe
+augment(lfit)
+str(augment(lfit))
+
+
+augment(lfit) %>%
+  select(TFR.1975, .fitted)
+```
  
 ## Residuals
 
@@ -87,8 +126,3 @@ What do you see?
 ![](images/Myrskla_graph_exp.png)
 
 ## What Makes a Killer Graph?
-
-
-
-
-
