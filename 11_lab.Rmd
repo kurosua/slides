@@ -1,0 +1,52 @@
+---
+title: "11_lab"
+author: "Aaron K"
+date: "February 23, 2015"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+require(tidyr)
+
+df <-read.table("http://socserv.socsci.mcmaster.ca/jfox/Books/Applied-Regression-2E/datasets/UnitedNations.txt")
+df$country <- rownames(df)
+rownames(df) <- NULL
+df <- tbl_df(df)
+df
+```
+
+Plots
+```{r}
+ggplot(df, aes(lifeFemale, region)) +
+  geom_point(colour = "red", position = "jitter") +
+  geom_point(aes(lifeMale, region), colour = "blue", position = "jitter")
+```
+
+Class HW:
+1. Describe the differences between Male and Female Life expectancy using stats.
+2. Describe diff between M & F life Expect visually 
+3. Describe diff between M & F life expect by region using stats
+3b. what kind of variable is region?
+4. Add region info to your plot.
+5. challenge. redo the plot, but try adding the country names instead of points.
+
+```{r}
+# 1.
+df %>% summarise(mean.life.female = mean(lifeFemale, na.rm=T))
+df %>% summarise(mean.life.male = mean(lifeMale, na.rm=T))
+
+# 2.
+male.df <- df %>%
+  filter(!is.na(lifeMale)) %>%
+  select(-lifeFemale, life = lifeMale)
+male.df$isMale <- 1
+female.df <- df %>%
+  filter(!is.na(lifeFemale)) %>%
+  select(-lifeMale, life = lifeFemale)
+female.df$isMale <- 0
+
+bind_rows(male.df, female.df)
+
+```
