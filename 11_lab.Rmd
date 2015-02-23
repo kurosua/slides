@@ -88,6 +88,7 @@ levels(df$region)
 model4 <- lm(lifeFemale~region, df)
 tidy(model4)
 summary(model4)
+str(df$region) # showing you the structure of the factors
 
 ```
 
@@ -96,3 +97,26 @@ If you put into R a variable with various factors (no dummy coding), then R will
 If you want to check if one level (factor) is signficantly different from another, change the reference factor : 
 example : 
 df$region  <- relevel(df$region, ref = "Europe")
+
+# Life Expectancy and GDP
+1. plot female life expect and female life edu with region colors
+2. regress female life expect and female edu. linear regress
+3. regress female life expect on female edu and the europe dummy
+
+```{r}
+#1
+ggplot(df, aes(lifeFemale, educationFemale), colour=region) + 
+  geom_point()
+#2
+ggplot(df, aes(lifeFemale, educationFemale)) + 
+  geom_point() +
+  geom_smooth(method="lm", se=F)
+#3
+model5 <- lm(lifeFemale~educationFemale+Europe, df.2)
+summary(model5)
+ggplot(df.2, aes(lifeFemale, educationFemale)) +
+  geom_point() +
+  geom_abline(slope=0.59, intercept=45.12)
+
+
+```
