@@ -9,6 +9,7 @@ output: html_document
 library(ggplot2)
 library(dplyr)
 require(tidyr)
+require(broom)
 
 df <-read.table("http://socserv.socsci.mcmaster.ca/jfox/Books/Applied-Regression-2E/datasets/UnitedNations.txt")
 df$country <- rownames(df)
@@ -34,8 +35,8 @@ Class HW:
 
 ```{r}
 # 1.
-df %>% summarise(mean.life.female = mean(lifeFemale, na.rm=T))
-df %>% summarise(mean.life.male = mean(lifeMale, na.rm=T))
+df %>% summarise(mean.life.female = mean(lifeFemale, na.rm=T), 
+  mean.life.male = mean(lifeMale, na.rm=T))
 
 # 2.
 male.df <- df %>%
@@ -47,6 +48,51 @@ female.df <- df %>%
   select(-lifeMale, life = lifeFemale)
 female.df$isMale <- 0
 
-bind_rows(male.df, female.df)
+df2 <- bind_rows(male.df, female.df)
+ggplot(df2, aes(life)) +
+  stat_bin()
 
 ```
+
+Comparing Regions
+1. create a dummy for european countries
+2. create a dummy for non-euro countries
+3. regress female life expect on the europe dummy. regress female life expectancy on the non-euro dummy. what do you notice?
+4. regress female life expectancy on 'region'. interpret the results.
+5. challenge. do euro and america have the same mean female life expect?
+
+```{r}
+
+df.2 <- df %>%
+  # as.numeric forces it as 1 & 0 rather than T/F
+  mutate(Europe=as.numeric(region=='Europe'),
+         nonEurope=as.numeric(region!='Europe')) 
+
+# 3
+model1 <- lm(lifeFemale~Europe, df.2)
+summary(model1)
+tidy(model1)
+model2 <- lm(lifeFemale~nonEurope, df.2)
+summary(model2)
+tidy(model2)
+# 4 : it's the same thing if you focus on Europe
+# dummy coding doesn't effect the slopes, random intercept (offsets)
+model3 <- lm(lifeFemale~region, df.2)
+tidy(model3)
+# 5 : america's estimate is 3 years lower than europe (22vs19). 
+# test if the difference is significant:
+# it is not significantly different
+levels(df$region)
+df$region <- relevel(df$region, ref="Europe")
+levels(df$region)
+model4 <- lm(lifeFemale~region, df)
+tidy(model4)
+summary(model4)
+
+```
+
+If you put into R a variable with various factors (no dummy coding), then R will automatically create dummy codes and then use one of the factors as the baseline/reference. To check which one, look for which factor isn't present (use levels(df$region), to check all the factors of region). 
+
+If you want to check if one level (factor) is signficantly different from another, change the reference factor : 
+example : 
+df$region  <- relevel(df$region, ref = "Europe")
