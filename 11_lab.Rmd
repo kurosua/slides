@@ -105,8 +105,12 @@ df$region  <- relevel(df$region, ref = "Europe")
 
 ```{r}
 #1
-ggplot(df, aes(lifeFemale, educationFemale), colour=region) + 
-  geom_point()
+fit.ed <- lm(lifeFemale ~ educationFemale, data = df)
+tidy(fit.ed)
+ggplot(df, aes(lifeFemale, educationFemale)) + 
+  geom_point(aes(colour=region))  +
+  geom_abline( slope = 0.59, intercept = 45.12)
+
 #2
 ggplot(df, aes(lifeFemale, educationFemale)) + 
   geom_point() +
@@ -114,9 +118,30 @@ ggplot(df, aes(lifeFemale, educationFemale)) +
 #3
 model5 <- lm(lifeFemale~educationFemale+Europe, df.2)
 summary(model5)
-ggplot(df.2, aes(lifeFemale, educationFemale)) +
+ggplot(df.2, aes(lifeFemale, educationFemale, colour = as.factor(Europe))) +
   geom_point() +
-  geom_abline(slope=0.59, intercept=45.12)
+  geom_smooth(method="lm", se=F)
 
+--- answer to number 3 
+
+fit.ed.euro <- lm(lifeFemale ~ educationFemale + Europe, data = df.2)
+fit.ed.euro <- tidy(fit.ed.euro)
+fit.ed.euro$estimate[1] + fit.ed.euro$estimate[2]*12 +  fit.ed.euro$estimate[3]
+fit.ed.euro$estimate[1] + fit.ed.euro$estimate[2]*12 
+inter.non.euro <- as.numeric(filter(fit.ed.euro, term =="(Intercept)") %>%
+                           select(estimate))
+inter.euro <- inter.non.euro + 
+  as.numeric(filter(fit.ed.euro, term == "europe") %>%
+                                          select(estimate))
+slope <- as.numeric(filter(fit.ed.euro, term =="educationFemale") %>%
+                      select(estimate))
+
+ggplot(df.2, aes(x=educationFemale, y=lifeFemale, colour = as.factor(Europe))) +
+  geom_point() + 
+  scale_color_manual(values = c("red", "blue")) +
+  geom_abline(intercept = inter.non.euro, slope = slope, color = "red") +
+  geom_abline(intercept = inter.euro, slope = slope, color = "blue")
+
+# you must manually specify your lines until we figure out a more elgant way. 
 
 ```

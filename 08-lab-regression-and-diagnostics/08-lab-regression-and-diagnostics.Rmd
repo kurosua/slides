@@ -21,7 +21,7 @@ This paper examined the relationship between the Human Development Index (HDI) a
 ```{r, eval=FALSE}
 library(dplyr)
 library(ggplot2)
-data <- read.csv("~/Dropbox/SOC504/week 3/nature08230-s2.csv")
+data <- read.csv("~/Dropbox/SOC504/Lab_Slides/08-lab-regression-and-diagnostics/data/nature08230-s2.csv")
 data <- select(data, country, HDI.1975, TFR.1975, HDI.2005, TFR.2005)
 ```
 
@@ -53,12 +53,8 @@ For a country with an HDI of zero it's predicted to have a TFR of 9.6.
 the intercept of the line
 
 ```{r}
-data %>%
-  filter(!is.na(HDI.1975), !is.na(TFR.1975), 
-         !is.na(HDI.2005), !is.na(TFR.2005)) %>% 
-lfit <- lm(TFR.1975 ~ HDI.1975)
+lfit <- lm(TFR.1975 ~ HDI.1975, data)
 summary(lfit)
-
 ```
  
 
@@ -92,8 +88,8 @@ tidy(lfit)
 augment(lfit)
 str(augment(lfit))
 
-
-augment(lfit) %>%
+# fitted next to raw TFR.1975
+compareTFR <- augment(lfit) %>%
   select(TFR.1975, .fitted)
 ```
  
@@ -102,14 +98,34 @@ augment(lfit) %>%
 [Fortify and ggplot2](http://docs.ggplot2.org/0.9.3.1/fortify.lm.html)   
 
 - See ?fortify.lm  
+```{r}
+fortify(lfit) %>%
+  ggplot(aes(.fitted, .resid)) +
+    geom_point() +
+    geom_smooth(method="lm")
+```
 - Make a new scatter plot of the residuals versus the fitted values.    
 
 [Learn more about residuals](http://blog.minitab.com/blog/adventures-in-statistics/why-you-need-to-check-your-residual-plots-for-regression-analysis)  
+
+When you look at a residual plot it should look random, if it has an obvious relationship then you should explore your data more. Plotting your residuals is considered a basic check. 
 
 
 ## Comparing 1975 to 2005
 
 - Return to the original HDI-TFR scatter plot.  
+```{r}
+data %>%
+  filter(!is.na(HDI.1975), !is.na(TFR.1975), 
+         !is.na(HDI.2005), !is.na(TFR.2005)) %>% 
+  ggplot(aes(TFR.1975, HDI.1975)) +
+    geom_point(colour="blue") +
+    geom_point(aes(TFR.2005, HDI.2005), colour="red") +
+    labs(x="TFR", y="HDI") +
+    geom_smooth(aes(TFR.2005, HDI.2005), colour="red", method="lm", se=F) +
+    geom_smooth(aes(TFR.1975, HDI.1975), colour="blue", method="lm", se=F)
+
+```
 - Add the 2005 data to your scatter plot in red.  
 - Perform the HDI on TFR regression for 2005 data.  
 - Add the new regression line to your plot.  
